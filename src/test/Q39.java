@@ -1,7 +1,3 @@
-import com.sun.org.apache.bcel.internal.generic.GotoInstruction;
-
-import javax.imageio.IIOException;
-import javax.lang.model.element.VariableElement;
 import java.io.*;
 
 public class Q39 {
