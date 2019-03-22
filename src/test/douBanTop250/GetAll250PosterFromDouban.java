@@ -1,15 +1,16 @@
+
 import javax.imageio.ImageIO;
+import javax.print.DocFlavor;
 import javax.sound.sampled.Line;
 import java.awt.*;
 import java.io.*;
+import java.lang.reflect.Array;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.*;
 import java.util.List;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -19,6 +20,10 @@ public class GetAll250PosterFromDouban {
     private static String[] eachdoubanUrl = new String[10];
     private static String[] eachPosterUrl = new String[250];
     private static String[] eachPosterName = new String[250];
+
+
+    private static List<String> listPosterUrl = new ArrayList<>();
+    private static List<String> listPosterName = new ArrayList<>();
 
 
     public static void main(String[] args) {
@@ -40,7 +45,7 @@ public class GetAll250PosterFromDouban {
 
     public static void getdouabnUrlArray() {
         for (int i = 0; i < 10; i++) {
-            eachdoubanUrl[i] = "https://movie.douban.com/top250?start=" + i + "&filter=";
+            eachdoubanUrl[i] = "https://movie.douban.com/top250?start=" + i*25 + "&filter=";
         }
     }
 
@@ -87,90 +92,44 @@ public class GetAll250PosterFromDouban {
         }
         System.out.println("Poster's dir has created");
     }
-//
-//    public static void getEachPosterName() {
-//        List<String> nameList = new ArrayList<String>();
-//        String regexForImageName = "alt";
-//        String eachlineForRegex;
-//        StringBuilder contentBuilder = new StringBuilder();
-//
-//
-//        for (int i = 0; i < eachdoubanUrl.length; i++) {
-//            try (Stream<String> stream = Files.lines( Paths.get("doubanWeb/"+i+".html")))
-//            {
-//                stream.forEach(s -> contentBuilder.append(s).append("\n"));
-//            }
-//            catch (IOException e)
-//            {
-//                e.printStackTrace();
-//            }
-//            System.out.println("s");
-//            eachlineForRegex = contentBuilder.toString();
-//            System.out.println();
-//            Pattern pattern = Pattern.compile(regexForImageName);
-//
-//            Matcher matcher = pattern.matcher(eachlineForRegex);
-//
-//            while(matcher.find()) {
-//                System.out.println("it has found");
-////                tempListForPosterStringArray.add(matcher.group());
-//            }
-////            System.out.println(tempListForPosterStringArray);
-//        }
-//
-//    }
 
     public static void getPosterUrl() {
-        String regexForEachPosterUrl = "^(https)://img.*(.webp)$";
-        String regexForEachPosterName = "alt";
+
+
+        try {
+            for (int i = 0; i < 10; i++) {
+                searchEachPage(new BufferedReader(new FileReader("doubanWeb/" + i + ".html")));
+                System.out.println(i+"zheshi sfdasf");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        System.out.println("done");
+        System.out.println(listPosterName);
+        System.out.println(listPosterUrl);
+        for (int i = 0; i < listPosterName.size(); i++) {
+            eachPosterName[i] = listPosterName.get(i);
+            System.out.println(eachPosterName[i]);
+        }
+
+    }
+    public static void searchEachPage(BufferedReader reader) throws IOException {
 
         String eachlineForRegex;
-
-        List<String> ListForPosterUrl = new ArrayList<>();
-        List<String> ListForPosterName = new ArrayList<>();
-
-
-        for (int i = 0; i < eachdoubanUrl.length; i++) {
-            try {
-                BufferedReader reader;
-                reader = new BufferedReader(new FileReader("doubanWeb/" + i + ".html"));
-                String line = reader.readLine();
-                while (line != null) {
-                    eachlineForRegex = line;
-
-                    //
-                    Pattern patternUrl = Pattern.compile(regexForEachPosterUrl);
-                    Matcher matcherUrl = patternUrl.matcher(eachlineForRegex);
-
-                    while (matcherUrl.find()) {
-
-                        ListForPosterUrl.add(matcherUrl.group());
-                        System.out.println(ListForPosterUrl);
-                    }
-
-                    //
-                    Pattern patternName = Pattern.compile(regexForEachPosterName);
-                    Matcher matcherName = patternName.matcher(eachlineForRegex);
-
-                    while (matcherName.find()) {
-                        ListForPosterName.add(eachlineForRegex.substring(matcherName.start()+5,matcherName.end()));
-                        System.out.println(ListForPosterName);
-                    }
-
-                    // read next line
-                    line = reader.readLine();
-                }
-                reader.close();
-            } catch (IOException e) {
-                e.printStackTrace();
+        while ((eachlineForRegex = reader.readLine()) != null) {
+            if (eachlineForRegex.contains("s_ratio_poster")) {
+                String src = eachlineForRegex.substring(eachlineForRegex.indexOf("https"), eachlineForRegex.lastIndexOf("\" "));
+                String temp = eachlineForRegex.substring(eachlineForRegex.indexOf("alt=\""), eachlineForRegex.lastIndexOf("\" src"));
+                String name = temp.substring(5, temp.length());
+                listPosterUrl.add(src);
+                listPosterName.add(name);
+                System.out.println(src);
+                System.out.println(name);
             }
-        }
-        for (int i = 0; i < eachPosterUrl.length; i++) {
-            eachPosterUrl[i] = ListForPosterUrl.get(i).toString();
-
+            eachlineForRegex = reader.readLine();
         }
     }
-
 
     public static void mkPosterFile() {
 
